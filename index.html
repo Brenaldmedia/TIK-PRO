@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TIK PRO - Download TikTok Videos Without Watermark</title>
+    <link rel="stylesheet" href="styles.css">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+</head>
+<body>
+    <!-- Header -->
+    <header class="header">
+        <div class="container">
+            <nav class="nav">
+                <div class="logo">
+                    <i class="fas fa-video"></i>
+                    <span>TIK PRO</span>
+                </div>
+                <div class="nav-links">
+                    <a href="#home">Home</a>
+                    <a href="#how-it-works">How It Works</a>
+                    <a href="#faq">FAQ</a>
+                </div>
+            </nav>
+        </div>
+    </header>
+
+    <!-- Hero Section -->
+    <section id="home" class="hero">
+        <div class="container">
+            <div class="hero-content">
+                <h1>Download TikTok Videos in HD Quality</h1>
+                <p>No watermark • Fast download • Free forever</p>
+                
+                <div class="download-form">
+                    <div class="input-group">
+                        <input 
+                            type="text" 
+                            id="tiktokUrl" 
+                            placeholder="Paste TikTok video URL here..."
+                            class="url-input"
+                        >
+                        <button id="downloadBtn" class="download-btn">
+                            <i class="fas fa-download"></i> Download
+                        </button>
+                    </div>
+                    <div id="errorMessage" class="error-message"></div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Loading Spinner -->
+    <div id="loadingSpinner" class="loading-spinner hidden">
+        <div class="spinner"></div>
+        <p>Processing your video...</p>
+    </div>
+
+    <!-- Result Section -->
+    <section id="resultSection" class="result-section hidden">
+        <div class="container">
+            <div class="result-content">
+                <h2>Your Video is Ready!</h2>
+                <div id="videoPreview" class="video-preview"></div>
+                <div class="download-options">
+                    <a id="downloadLink" class="download-option-btn" download>
+                        <i class="fas fa-download"></i> Download Video
+                    </a>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- How It Works -->
+    <section id="how-it-works" class="how-it-works">
+        <div class="container">
+            <h2>How It Works</h2>
+            <div class="steps">
+                <div class="step">
+                    <div class="step-icon">1</div>
+                    <h3>Copy TikTok URL</h3>
+                    <p>Copy the link from TikTok app or website</p>
+                </div>
+                <div class="step">
+                    <div class="step-icon">2</div>
+                    <h3>Paste URL</h3>
+                    <p>Paste the link in the input field above</p>
+                </div>
+                <div class="step">
+                    <div class="step-icon">3</div>
+                    <h3>Download</h3>
+                    <p>Click download and save your video</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- FAQ Section -->
+    <section id="faq" class="faq">
+        <div class="container">
+            <h2>Frequently Asked Questions</h2>
+            <div class="accordion">
+                <div class="accordion-item">
+                    <button class="accordion-header">
+                        Is TIK PRO free to use?
+                        <i class="fas fa-chevron-down"></i>
+                    </button>
+                    <div class="accordion-content">
+                        <p>Yes! TIK PRO is completely free to use. There are no hidden charges or subscriptions.</p>
+                    </div>
+                </div>
+                
+                <div class="accordion-item">
+                    <button class="accordion-header">
+                        Does the downloaded video have a watermark?
+                        <i class="fas fa-chevron-down"></i>
+                    </button>
+                    <div class="accordion-content">
+                        <p>No! TIK PRO removes the TikTok watermark from downloaded videos.</p>
+                    </div>
+                </div>
+                
+                <div class="accordion-item">
+                    <button class="accordion-header">
+                        What video quality is supported?
+                        <i class="fas fa-chevron-down"></i>
+                    </button>
+                    <div class="accordion-content">
+                        <p>We support HD quality downloads up to 1080p, depending on the original video quality.</p>
+                    </div>
+                </div>
+                
+                <div class="accordion-item">
+                    <button class="accordion-header">
+                        Is it legal to download TikTok videos?
+                        <i class="fas fa-chevron-down"></i>
+                    </button>
+                    <div class="accordion-content">
+                        <p>Downloading videos for personal use is generally acceptable. However, respect copyright laws and creator rights.</p>
+                    </div>
+                </div>
+                
+                <div class="accordion-item">
+                    <button class="accordion-header">
+                        Why is my download not working?
+                        <i class="fas fa-chevron-down"></i>
+                    </button>
+                    <div class="accordion-content">
+                        <p>Make sure you're using a valid TikTok URL. If problems persist, try refreshing the page.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-section">
+                    <div class="logo">
+                        <i class="fas fa-video"></i>
+                        <span>TIK PRO</span>
+                    </div>
+                    <p>Download TikTok videos without watermark in high quality.</p>
+                </div>
+                
+                <div class="footer-section">
+                    <h3>Quick Links</h3>
+                    <a href="#home">Home</a>
+                    <a href="#how-it-works">How It Works</a>
+                    <a href="#faq">FAQ</a>
+                </div>
+                
+                <div class="footer-section">
+                    <h3>Legal</h3>
+                    <a href="#faq">Privacy Policy</a>
+                    <a href="#faq">Terms of Service</a>
+                    <a href="#faq">Disclaimer</a>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <p>&copy; <span id="year"></span> TIK PRO. All rights reserved.</p>
+            </div>
+        </div>
+    </footer>
+
+    <script src="script.js"></script>
+</body>
+</html>
