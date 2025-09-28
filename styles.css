@@ -538,3 +538,30 @@ body {
         font-size: 2rem;
     }
 }
+
+.download-another-btn {
+    display: inline-block;
+    background: #6c757d;
+    color: white;
+    padding: 12px 24px;
+    border-radius: 8px;
+    text-decoration: none;
+    font-weight: 600;
+    transition: all 0.3s ease;
+    border: none;
+    cursor: pointer;
+    margin-left: 10px;
+}
+
+.download-another-btn:hover {
+    background: #5a6268;
+    transform: translateY(-2px);
+}
+
+.download-options {
+    margin-top: 20px;
+    display: flex;
+    gap: 15px;
+    justify-content: center;
+    flex-wrap: wrap;
+}

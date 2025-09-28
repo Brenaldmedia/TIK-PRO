@@ -26,6 +26,15 @@ class TikTokDownloader {
         urlInput.addEventListener('focus', () => {
             this.clearMessages();
         });
+
+        // Use event delegation for download links (works for dynamically created elements)
+        document.addEventListener('click', (e) => {
+            if (e.target.closest('#downloadLink')) {
+                e.preventDefault();
+                const link = e.target.closest('#downloadLink');
+                this.handleDownloadClick(link.href);
+            }
+        });
     }
 
     initializeAccordion() {
@@ -63,15 +72,26 @@ class TikTokDownloader {
 
     validateUrl(url) {
         const errorMessage = document.getElementById('errorMessage');
-        const tiktokRegex = /https?:\/\/(www\.|vm\.|vt\.)?tiktok\.com\/(.*\/video\/\d+|.*\?|t\/\w+\/)/;
+        
+        // More comprehensive TikTok URL regex pattern
+        const tiktokRegex = /https?:\/\/(www\.|vm\.|vt\.|m\.)?tiktok\.com\/(.*\/video\/\d+|.*\?|t\/\w+\/|\w+\/|\S+)/;
+        
+        // Alternative pattern for short URLs
+        const shortTiktokRegex = /https?:\/\/(vm|vt)\.tiktok\.com\/\w+/;
+        
+        // Pattern for tiktok.com/t/ format
+        const tFormatRegex = /https?:\/\/www\.tiktok\.com\/t\/\w+/;
 
         if (!url) {
             errorMessage.textContent = '';
             return false;
         }
 
-        if (!tiktokRegex.test(url)) {
-            errorMessage.textContent = 'Please enter a valid TikTok URL (e.g., https://www.tiktok.com/@username/video/123456789)';
+        // Test against all valid TikTok URL patterns
+        const isValid = tiktokRegex.test(url) || shortTiktokRegex.test(url) || tFormatRegex.test(url);
+        
+        if (!isValid) {
+            errorMessage.textContent = 'Please enter a valid TikTok URL. Examples:\n• https://www.tiktok.com/@username/video/123456789\n• https://vm.tiktok.com/ZMA56TGY8/\n• https://www.tiktok.com/t/abc123def';
             return false;
         } else {
             errorMessage.textContent = '';
@@ -94,11 +114,15 @@ class TikTokDownloader {
 
         this.clearMessages();
 
-        if (!this.validateUrl(url)) {
+        // Use a more lenient validation for the actual download
+        if (!this.isValidTikTokUrl(url)) {
             if (!url) {
                 errorMessage.textContent = 'Please enter a TikTok URL';
                 errorMessage.style.display = 'block';
                 urlInput.focus();
+            } else {
+                errorMessage.textContent = 'Please enter a valid TikTok URL. We support various formats including short links.';
+                errorMessage.style.display = 'block';
             }
             return;
         }
@@ -115,6 +139,26 @@ class TikTokDownloader {
         } finally {
             this.hideLoading();
             this.isProcessing = false;
+        }
+    }
+
+    // More lenient validation for actual processing
+    isValidTikTokUrl(url) {
+        if (!url) return false;
+        
+        // Basic check for TikTok domains
+        const tiktokDomains = [
+            'tiktok.com',
+            'vm.tiktok.com',
+            'vt.tiktok.com',
+            'm.tiktok.com'
+        ];
+        
+        try {
+            const urlObj = new URL(url);
+            return tiktokDomains.some(domain => urlObj.hostname.includes(domain));
+        } catch (e) {
+            return false;
         }
     }
 
@@ -164,16 +208,22 @@ class TikTokDownloader {
                 videoUrl = data.result.video;
             } else if (data.play) {
                 videoUrl = data.play;
+            } else if (data.videoUrl) {
+                videoUrl = data.videoUrl;
             }
 
             if (!videoUrl) {
                 // Try to find any video URL in the response
                 const jsonString = JSON.stringify(data).toLowerCase();
-                const urlMatch = jsonString.match(/(https?:\/\/[^\s",]+\.(mp4|mov|avi|webm))/);
+                const urlMatch = jsonString.match(/(https?:\/\/[^\s",]+\.(mp4|mov|avi|webm|m3u8))/);
                 if (urlMatch) {
                     videoUrl = urlMatch[1];
                 } else {
-                    throw new Error('No video URL found in response');
+                    // If no direct video URL found, check for nested structures
+                    videoUrl = this.findVideoUrlInObject(data);
+                    if (!videoUrl) {
+                        throw new Error('No video URL found in response');
+                    }
                 }
             }
 
@@ -190,10 +240,32 @@ class TikTokDownloader {
         }
     }
 
+    // Recursive function to find video URL in nested objects
+    findVideoUrlInObject(obj, depth = 0) {
+        if (depth > 5) return null; // Prevent infinite recursion
+        
+        for (let key in obj) {
+            if (obj.hasOwnProperty(key)) {
+                const value = obj[key];
+                
+                // Check if value is a string that looks like a video URL
+                if (typeof value === 'string' && value.match(/https?:\/\/[^\s]+\.(mp4|mov|avi|webm|m3u8)/)) {
+                    return value;
+                }
+                
+                // If value is an object or array, search recursively
+                if (typeof value === 'object' && value !== null) {
+                    const result = this.findVideoUrlInObject(value, depth + 1);
+                    if (result) return result;
+                }
+            }
+        }
+        return null;
+    }
+
     async displayResult(data) {
         const resultSection = document.getElementById('resultSection');
         const videoPreview = document.getElementById('videoPreview');
-        const downloadLink = document.getElementById('downloadLink');
 
         if (!data.videoUrl) {
             throw new Error('No video URL provided');
@@ -226,25 +298,21 @@ class TikTokDownloader {
         // Set download link with proper filename
         const filename = `tiktok-video-${Date.now()}.mp4`;
         
-        // Create a new download link element to ensure clean state
-        const newDownloadLink = document.createElement('a');
-        newDownloadLink.id = 'downloadLink';
-        newDownloadLink.className = 'download-option-btn';
-        newDownloadLink.innerHTML = '<i class="fas fa-download"></i> Download Video';
-        newDownloadLink.href = data.videoUrl;
-        newDownloadLink.setAttribute('download', filename);
-        newDownloadLink.setAttribute('title', `Download ${filename}`);
-        
-        // Add click event listener for tracking
-        newDownloadLink.addEventListener('click', (e) => {
-            this.trackDownload(data.videoUrl);
-            // Allow the default download behavior to proceed
-        });
-
-        // Replace the old download link
+        // Create download options HTML
         const downloadOptions = document.querySelector('.download-options');
-        downloadOptions.innerHTML = ''; // Clear existing content
-        downloadOptions.appendChild(newDownloadLink);
+        downloadOptions.innerHTML = `
+            <a id="downloadLink" class="download-option-btn" href="${data.videoUrl}" download="${filename}" title="Download ${filename}">
+                <i class="fas fa-download"></i> Download Video
+            </a>
+            <button id="downloadAnother" class="download-another-btn">
+                <i class="fas fa-redo"></i> Download Another Video
+            </button>
+        `;
+
+        // Add event listener for "Download Another" button
+        document.getElementById('downloadAnother').addEventListener('click', () => {
+            this.resetForm();
+        });
 
         // Show result section
         resultSection.classList.remove('hidden');
@@ -255,18 +323,38 @@ class TikTokDownloader {
         }, 100);
     }
 
-    trackDownload(url) {
+    handleDownloadClick(url) {
         console.log('Download initiated:', url);
-        // You can add analytics tracking here
         this.showSuccess('Download started!');
         
-        // Force download for browsers that might block it
-        setTimeout(() => {
-            const link = document.getElementById('downloadLink');
-            if (link) {
-                link.click(); // Ensure the click happens
-            }
-        }, 100);
+        // Create a temporary anchor to force download
+        const tempLink = document.createElement('a');
+        tempLink.href = url;
+        tempLink.download = `tiktok-video-${Date.now()}.mp4`;
+        tempLink.style.display = 'none';
+        document.body.appendChild(tempLink);
+        tempLink.click();
+        document.body.removeChild(tempLink);
+    }
+
+    resetForm() {
+        const urlInput = document.getElementById('tiktokUrl');
+        const resultSection = document.getElementById('resultSection');
+        const downloadOptions = document.querySelector('.download-options');
+        
+        // Clear the input
+        urlInput.value = '';
+        
+        // Hide result section
+        resultSection.classList.add('hidden');
+        
+        // Clear download options
+        downloadOptions.innerHTML = '';
+        
+        // Focus back on the input
+        urlInput.focus();
+        
+        this.clearMessages();
     }
 
     showSuccess(message) {
@@ -311,6 +399,8 @@ class TikTokDownloader {
             message = 'Request timeout. The server is taking too long to respond.';
         } else if (error.message.includes('Invalid URL')) {
             message = 'Please enter a valid TikTok URL.';
+        } else if (error.message.includes('private') || error.message.includes('unavailable')) {
+            message = 'This video might be private or unavailable. Try a different video.';
         }
         
         errorMessage.textContent = message;
