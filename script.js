@@ -10,7 +10,6 @@ class TikTokDownloader {
     initializeEventListeners() {
         const downloadBtn = document.getElementById('downloadBtn');
         const urlInput = document.getElementById('tiktokUrl');
-        const downloadLink = document.getElementById('downloadLink');
 
         downloadBtn.addEventListener('click', () => this.handleDownload());
         urlInput.addEventListener('keypress', (e) => {
@@ -27,13 +26,6 @@ class TikTokDownloader {
         urlInput.addEventListener('focus', () => {
             this.clearMessages();
         });
-
-        // Add event listener for the download link in result section
-        if (downloadLink) {
-            downloadLink.addEventListener('click', (e) => {
-                this.trackDownload(downloadLink.href);
-            });
-        }
     }
 
     initializeAccordion() {
@@ -233,16 +225,26 @@ class TikTokDownloader {
 
         // Set download link with proper filename
         const filename = `tiktok-video-${Date.now()}.mp4`;
-        downloadLink.href = data.videoUrl;
-        downloadLink.setAttribute('download', filename);
-        downloadLink.setAttribute('title', `Download ${filename}`);
-
-        // Update the download link event listener
-        downloadLink.replaceWith(downloadLink.cloneNode(true));
-        const newDownloadLink = document.getElementById('downloadLink');
-        newDownloadLink.addEventListener('click', () => {
+        
+        // Create a new download link element to ensure clean state
+        const newDownloadLink = document.createElement('a');
+        newDownloadLink.id = 'downloadLink';
+        newDownloadLink.className = 'download-option-btn';
+        newDownloadLink.innerHTML = '<i class="fas fa-download"></i> Download Video';
+        newDownloadLink.href = data.videoUrl;
+        newDownloadLink.setAttribute('download', filename);
+        newDownloadLink.setAttribute('title', `Download ${filename}`);
+        
+        // Add click event listener for tracking
+        newDownloadLink.addEventListener('click', (e) => {
             this.trackDownload(data.videoUrl);
+            // Allow the default download behavior to proceed
         });
+
+        // Replace the old download link
+        const downloadOptions = document.querySelector('.download-options');
+        downloadOptions.innerHTML = ''; // Clear existing content
+        downloadOptions.appendChild(newDownloadLink);
 
         // Show result section
         resultSection.classList.remove('hidden');
@@ -257,6 +259,14 @@ class TikTokDownloader {
         console.log('Download initiated:', url);
         // You can add analytics tracking here
         this.showSuccess('Download started!');
+        
+        // Force download for browsers that might block it
+        setTimeout(() => {
+            const link = document.getElementById('downloadLink');
+            if (link) {
+                link.click(); // Ensure the click happens
+            }
+        }, 100);
     }
 
     showSuccess(message) {
